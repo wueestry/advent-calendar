@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Day {{ door.day }}: {{ door.title }} — Advent Calendar{% endblock %}
+
+{% block content %}
+  <article class="door-detail-card">
+    <div class="door-detail-header">
+      <span class="door-badge">Door #{{ door.day }}</span>
+      <h1>{{ door.title }}</h1>
+      <p class="door-subtitle">{{ door.subtitle }}</p>
+    </div>
+
+    <div class="door-detail-body">
+      <p>{{ door.content }}</p>
+    </div>
+
+    <div class="door-detail-footer">
+      <a href="{{ url_for('calendar.index') }}" class="btn btn-secondary">
+        ← Back to Advent Calendar
+      </a>
+    </div>
+  </article>
+{% endblock %}
