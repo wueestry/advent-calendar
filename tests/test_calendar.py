@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from datetime import date
+from pathlib import Path
 import pytest
 
 from advent_calendar import create_app
-from advent_calendar.doors import DOORS, get_door_by_day
+import advent_calendar.doors as doors_module
+from advent_calendar.doors import DOORS, Door, get_door_by_day
 
 
 def test_all_24_doors_have_unique_suids() -> None:
@@ -108,3 +110,64 @@ def test_enable_debug_env_unlocks_all_doors_regardless_of_date(
 def test_unknown_suid_returns_404(auth_client) -> None:
     resp = auth_client.get("/door/nonexistent-suid")
     assert resp.status_code == 404
+
+
+def test_locked_door_media_redirects_home_with_flash(auth_client) -> None:
+    door1 = get_door_by_day(1)
+    assert door1 is not None and door1.image is not None
+
+    resp = auth_client.get(f"/door/{door1.suid}/media/{door1.image}", follow_redirects=False)
+    assert resp.status_code == 302
+    assert resp.headers["Location"].endswith("/")
+
+
+def test_unlocked_door_renders_and_serves_picture_and_video(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "festive.svg").write_text("<svg>festive</svg>", encoding="utf-8")
+    (tmp_path / "clip.mp4").write_bytes(b"fake-mp4-bytes")
+
+    custom_door = Door(
+        day=2,
+        suid="d4e8b2109c7a",
+        title="Media Door",
+        subtitle="December 2",
+        content="Door with picture, local video, and embed.",
+        image="festive.svg",
+        image_alt="Festive vector",
+        video="clip.mp4",
+        youtube_embed="https://www.youtube.com/embed/dQw4w9WgXcQ",
+    )
+    monkeypatch.setitem(doors_module.DOORS_BY_SUID, custom_door.suid, custom_door)
+
+    app = create_app(
+        {
+            "TESTING": True,
+            "APP_USERNAME": "santa",
+            "APP_PASSWORD": "secret-password",
+            "CALENDAR_YEAR": 2026,
+            "CURRENT_DATE": date(2026, 12, 2),
+            "ENABLE_DEBUG": False,
+            "MEDIA_DIR": tmp_path,
+        }
+    )
+    client = app.test_client()
+    client.post("/login", data={"username": "santa", "password": "secret-password"})
+
+    page = client.get(f"/door/{custom_door.suid}")
+    assert page.status_code == 200
+    assert f'/door/{custom_door.suid}/media/festive.svg'.encode() in page.data
+    assert f'/door/{custom_door.suid}/media/clip.mp4'.encode() in page.data
+    assert b"https://www.youtube.com/embed/dQw4w9WgXcQ" in page.data
+
+    img_resp = client.get(f"/door/{custom_door.suid}/media/festive.svg")
+    assert img_resp.status_code == 200
+    assert b"<svg>festive</svg>" in img_resp.data
+
+    vid_resp = client.get(f"/door/{custom_door.suid}/media/clip.mp4")
+    assert vid_resp.status_code == 200
+    assert vid_resp.data == b"fake-mp4-bytes"
+
+    # Requesting a file not attached to this door returns 404
+    other_resp = client.get(f"/door/{custom_door.suid}/media/day1-candle.svg")
+    assert other_resp.status_code == 404

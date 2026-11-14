@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="400" height="240" role="img" aria-label="Advent Candle">
+  <rect width="400" height="240" rx="16" fill="#0f172a"/>
+  <circle cx="200" cy="70" r="38" fill="#f59e0b" opacity="0.22"/>
+  <circle cx="200" cy="70" r="22" fill="#fbbf24" opacity="0.4"/>
+  <path d="M200 42 C190 60, 190 78, 200 86 C210 78, 210 60, 200 42 Z" fill="#fef08a"/>
+  <rect x="198" y="84" width="4" height="10" fill="#334155"/>
+  <rect x="176" y="94" width="48" height="105" rx="6" fill="#f8fafc"/>
+  <rect x="145" y="196" width="110" height="12" rx="6" fill="#f59e0b"/>
+</svg>

@@ -10,6 +10,10 @@ class Door:
     title: str
     subtitle: str
     content: str
+    image: str | None = None
+    image_alt: str | None = None
+    video: str | None = None
+    youtube_embed: str | None = None
 
 
 DOORS: tuple[Door, ...] = (
@@ -19,6 +23,8 @@ DOORS: tuple[Door, ...] = (
         title="The First Candle",
         subtitle="December 1 — Let the countdown begin",
         content="Welcome to Day 1 of the Advent Calendar! Light a warm candle, pour a mug of hot cocoa, and enjoy the start of the festive season.",
+        image="day1-candle.svg",
+        image_alt="Glowing Advent candle illustration",
     ),
     Door(
         day=2,
