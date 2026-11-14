@@ -11,7 +11,37 @@
     </div>
 
     <div class="door-detail-body">
+      {% if image_url %}
+        <figure class="door-media door-media-image">
+          <img
+            src="{{ image_url }}"
+            alt="{{ door.image_alt or door.title }}"
+            loading="lazy"
+          />
+        </figure>
+      {% endif %}
+
       <p>{{ door.content }}</p>
+
+      {% if video_url %}
+        <div class="door-media door-media-video">
+          <video controls preload="metadata" src="{{ video_url }}">
+            Your browser does not support embedded video playback.
+          </video>
+        </div>
+      {% endif %}
+
+      {% if door.youtube_embed %}
+        <div class="door-media door-media-embed">
+          <iframe
+            src="{{ door.youtube_embed }}"
+            title="Video for {{ door.title }}"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowfullscreen
+            loading="lazy"
+          ></iframe>
+        </div>
+      {% endif %}
     </div>
 
     <div class="door-detail-footer">

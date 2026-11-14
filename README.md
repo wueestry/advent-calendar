@@ -9,6 +9,7 @@ A Flask Advent Calendar web application managed with [`uv`](https://docs.astral.
 - **Date Gating (Stays Unlocked)**: Door `N` unlocks on `December N` of `CALENDAR_YEAR` and remains unlocked on all subsequent dates.
 - **Locked Door Redirect**: Visiting a locked door's `/door/<suid>` URL directly redirects back to `/` with a flash message showing when the door unlocks.
 - **Debug Override (`ENABLE_DEBUG=True`)**: Setting `ENABLE_DEBUG=True` unlocks all 24 doors regardless of the current date.
+- **Pictures & Videos in Doors**: Each `Door` in `src/advent_calendar/doors.py` supports optional `image`, `image_alt`, `video` (local files in `src/advent_calendar/media/` or external URLs), and `youtube_embed` fields. Local media files are served through `/door/<suid>/media/<filename>` behind the same login and date-unlock checks as the door itself.
 
 ## Quickstart (`uv`)
 

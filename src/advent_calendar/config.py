@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import os
 from datetime import date
+from pathlib import Path
 from typing import Any
+
+
+DEFAULT_MEDIA_DIR = Path(__file__).resolve().parent / "media"
 
 
 def parse_bool(value: Any) -> bool:
@@ -22,5 +26,6 @@ def load_config() -> dict[str, Any]:
         "ENABLE_DEBUG": parse_bool(os.environ.get("ENABLE_DEBUG", "False")),
         "CALENDAR_YEAR": default_year,
         "TIMEZONE": os.environ.get("TIMEZONE", "UTC"),
+        "MEDIA_DIR": Path(os.environ.get("MEDIA_DIR", str(DEFAULT_MEDIA_DIR))),
         "CURRENT_DATE": None,
     }
