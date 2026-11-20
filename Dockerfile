@@ -17,4 +17,12 @@ EXPOSE 5000
 
 USER appuser
 
-CMD [".venv/bin/flask", "--app", "advent_calendar", "run", "--host=0.0.0.0", "--port=5000"]
+# A single worker keeps the in-memory login throttle shared across requests;
+# threads still allow concurrent handling.
+CMD [".venv/bin/gunicorn", \
+     "--bind", "0.0.0.0:5000", \
+     "--worker-class", "gthread", \
+     "--workers", "1", \
+     "--threads", "8", \
+     "--access-logfile", "-", \
+     "advent_calendar:create_app()"]

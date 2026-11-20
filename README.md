@@ -38,6 +38,16 @@ ENABLE_DEBUG=True docker compose up --build
 
 For a production deployment, set `APP_ENV=production`, a unique `SECRET_KEY`, a strong `APP_PASSWORD` (or `APP_PASSWORD_HASH`), and `COOKIE_SECURE=True`. Serve the app behind HTTPS; enable `TRUST_PROXY_HEADERS=True` only when a trusted reverse proxy sets `X-Forwarded-*` headers. The app refuses to start in production with the default secret or password.
 
+The Docker image serves the app with Gunicorn, not the Flask development server. Without Docker, run it the same way:
+
+```bash
+# One worker keeps the in-memory login throttle shared across requests
+uv run gunicorn --bind 0.0.0.0:5000 --worker-class gthread --workers 1 --threads 8 \
+  "advent_calendar:create_app()"
+```
+
+Use `uv run flask --app advent_calendar run` only for local development.
+
 ## Configuration
 
 Copy `.env.example` to `.env` or set environment variables directly:
@@ -69,7 +79,7 @@ Copy `.env.example` to `.env` or set environment variables directly:
 - Responses send `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and `Cross-Origin-Resource-Policy`. HSTS is sent on HTTPS requests.
 - CORS is deny-by-default. Only origins in `ALLOWED_ORIGINS` receive CORS headers.
 - Static assets are versioned by modification time and cached immutably; HTML responses are never cached.
-- In production (`APP_ENV=production`), the app refuses to start with the default secret key or default password. The Docker image runs as a non-root user.
+- In production (`APP_ENV=production`), the app refuses to start with the default secret key or default password. The Docker image runs Gunicorn as a non-root user.
 
 ## Running Tests
 
