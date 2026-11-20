@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}Advent Calendar{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="container header-inner">
+        <a href="{{ url_for('calendar.index') }}" class="brand">
+          <span class="brand-star">✦</span> Advent Calendar
+        </a>
+        <div class="header-meta">
+          {% if debug_enabled %}
+            <span class="badge badge-debug">DEBUG MODE (ENABLE_DEBUG=True)</span>
+          {% endif %}
+          {% if session.get("authenticated") %}
+            <span class="user-pill">Signed in as {{ session.get("username", "user") }}</span>
+            <form action="{{ url_for('auth.logout') }}" method="post" class="inline-form">
+              <button type="submit" class="btn btn-secondary btn-sm">Log out</button>
+            </form>
+          {% endif %}
+        </div>
+      </div>
+    </header>
+
+    <main class="container main-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <section class="flash-list" aria-live="polite">
+            {% for category, message in messages %}
+              <div class="flash flash-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          </section>
+        {% endif %}
+      {% endwith %}
+
+      {% block content %}{% endblock %}
+    </main>
+  </body>
+</html>

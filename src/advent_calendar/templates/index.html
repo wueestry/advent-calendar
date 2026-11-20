@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Advent Calendar {{ calendar_year }}{% endblock %}
+
+{% block content %}
+  <section class="hero">
+    <h1>Advent Calendar {{ calendar_year }}</h1>
+    <p class="subtitle">
+      Current date: <strong>{{ today.strftime("%B %-d, %Y") }}</strong>.
+      Each door unlocks on its December date and remains open afterwards.
+    </p>
+  </section>
+
+  <section class="doors-grid" aria-label="Advent Calendar Doors">
+    {% for item in door_items %}
+      {% set door = item.door %}
+      {% if item.is_open %}
+        <a
+          href="{{ url_for('calendar.door_detail', suid=door.suid) }}"
+          class="door-card door-open"
+          data-day="{{ door.day }}"
+          data-suid="{{ door.suid }}"
+        >
+          <span class="door-number">{{ door.day }}</span>
+          <span class="door-status">Open ✦</span>
+          <span class="door-title">{{ door.title }}</span>
+        </a>
+      {% else %}
+        <div
+          class="door-card door-locked"
+          data-day="{{ door.day }}"
+          aria-disabled="true"
+        >
+          <span class="door-number">{{ door.day }}</span>
+          <span class="door-status">Locked 🔒</span>
+          <span class="door-unlock-hint">Opens Dec {{ door.day }}</span>
+        </div>
+      {% endif %}
+    {% endfor %}
+  </section>
+{% endblock %}
