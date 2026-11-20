@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{ error_code }} — Adventskalender{% endblock %}
+
+{% block content %}
+  <section class="error-card">
+    <p class="error-code">{{ error_code }}</p>
+    <h1>Hoppla.</h1>
+    <p class="subtitle">{{ error_message }}</p>
+    <a href="{{ url_for('calendar.index') }}" class="btn btn-primary">
+      Zurück zum Adventskalender
+    </a>
+  </section>
+{% endblock %}

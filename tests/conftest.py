@@ -6,6 +6,7 @@ from flask import Flask
 from flask.testing import FlaskClient
 
 from advent_calendar import create_app
+from tests.helpers import login
 
 
 @pytest.fixture
@@ -13,6 +14,7 @@ def app() -> Flask:
     return create_app(
         {
             "TESTING": True,
+            "APP_ENV": "testing",
             "SECRET_KEY": "test-secret",
             "APP_USERNAME": "santa",
             "APP_PASSWORD": "secret-password",
@@ -30,9 +32,5 @@ def client(app: Flask) -> FlaskClient:
 
 @pytest.fixture
 def auth_client(client: FlaskClient) -> FlaskClient:
-    client.post(
-        "/login",
-        data={"username": "santa", "password": "secret-password"},
-        follow_redirects=True,
-    )
+    login(client)
     return client

@@ -10,8 +10,11 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 COPY pyproject.toml uv.lock README.md ./
 COPY src ./src
 
-RUN uv sync --frozen --no-dev
+RUN uv sync --frozen --no-dev \
+    && useradd --create-home --uid 10001 appuser
 
 EXPOSE 5000
 
-CMD ["uv", "run", "flask", "--app", "advent_calendar", "run", "--host=0.0.0.0", "--port=5000"]
+USER appuser
+
+CMD [".venv/bin/flask", "--app", "advent_calendar", "run", "--host=0.0.0.0", "--port=5000"]

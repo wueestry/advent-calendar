@@ -7,6 +7,8 @@ import pytest
 from advent_calendar import create_app
 import advent_calendar.doors as doors_module
 from advent_calendar.doors import DOORS, Door, get_door_by_day
+from advent_calendar.i18n import format_date_de, format_day_month_de
+from tests.helpers import login
 
 
 def test_all_24_doors_have_unique_suids() -> None:
@@ -27,7 +29,7 @@ def test_locked_door_redirects_home_with_flash_before_december(auth_client) -> N
 
     followed = auth_client.get(f"/door/{door1.suid}", follow_redirects=True)
     assert followed.status_code == 200
-    assert b"Door #1 is still locked!" in followed.data
+    assert "Tür Nr. 1 ist noch verschlossen!" in followed.get_data(as_text=True)
 
 
 def test_doors_unlock_on_their_date_and_stay_unlocked_afterwards() -> None:
@@ -43,7 +45,7 @@ def test_doors_unlock_on_their_date_and_stay_unlocked_afterwards() -> None:
         }
     )
     client = app.test_client()
-    client.post("/login", data={"username": "santa", "password": "secret-password"})
+    login(client)
 
     door1 = get_door_by_day(1)
     door10 = get_door_by_day(10)
@@ -76,7 +78,7 @@ def test_doors_remain_unlocked_after_december_ends() -> None:
         }
     )
     client = app.test_client()
-    client.post("/login", data={"username": "santa", "password": "secret-password"})
+    login(client)
 
     door24 = get_door_by_day(24)
     assert door24 is not None
@@ -99,12 +101,12 @@ def test_enable_debug_env_unlocks_all_doors_regardless_of_date(
         }
     )
     client = app.test_client()
-    client.post("/login", data={"username": "santa", "password": "secret-password"})
+    login(client)
 
     for door in DOORS:
         resp = client.get(f"/door/{door.suid}")
         assert resp.status_code == 200
-        assert f"Door #{door.day}".encode() in resp.data
+        assert f"Tür Nr. {door.day}" in resp.get_data(as_text=True)
 
 
 def test_unknown_suid_returns_404(auth_client) -> None:
@@ -152,7 +154,7 @@ def test_unlocked_door_renders_and_serves_picture_and_video(
         }
     )
     client = app.test_client()
-    client.post("/login", data={"username": "santa", "password": "secret-password"})
+    login(client)
 
     page = client.get(f"/door/{custom_door.suid}")
     assert page.status_code == 200
@@ -171,3 +173,30 @@ def test_unlocked_door_renders_and_serves_picture_and_video(
     # Requesting a file not attached to this door returns 404
     other_resp = client.get(f"/door/{custom_door.suid}/media/day1-candle.svg")
     assert other_resp.status_code == 404
+
+
+def test_german_date_formatting() -> None:
+    assert format_date_de(date(2026, 12, 4)) == "4. Dezember 2026"
+    assert format_day_month_de(date(2026, 12, 4)) == "4. Dezember"
+
+
+def test_index_is_localized_in_swiss_german() -> None:
+    app = create_app(
+        {
+            "TESTING": True,
+            "APP_USERNAME": "santa",
+            "APP_PASSWORD": "secret-password",
+            "CALENDAR_YEAR": 2026,
+            "CURRENT_DATE": date(2026, 12, 4),
+            "ENABLE_DEBUG": False,
+        }
+    )
+    client = app.test_client()
+    login(client)
+
+    page = client.get("/").get_data(as_text=True)
+    assert 'lang="de-CH"' in page
+    assert "Heute ist" in page
+    assert "4. Dezember 2026" in page
+    assert "Öffnet am 24. Dezember" in page
+    assert "Verschlossen" in page

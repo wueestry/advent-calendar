@@ -1,32 +1,71 @@
 <!doctype html>
-<html lang="en">
+<html lang="de-CH">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}Advent Calendar{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="theme-color" content="#0b1220" />
+    <meta
+      name="description"
+      content="Ein festlich gestalteter Adventskalender mit 24 Türchen."
+    />
+    <title>{% block title %}Adventskalender{% endblock %}</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css', v=asset_version) }}"
+    />
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="{{ url_for('static', filename='favicon.svg', v=asset_version) }}"
+    />
   </head>
-  <body>
+  <body
+    {% if session.get("authenticated") %}data-session-timeout="{{ session_timeout }}" data-session-warning="{{ session_warning }}"{% endif %}
+  >
+    <a class="skip-link" href="#main">Zum Inhalt springen</a>
+
     <header class="site-header">
       <div class="container header-inner">
         <a href="{{ url_for('calendar.index') }}" class="brand">
-          <span class="brand-star">✦</span> Advent Calendar
+          <span class="brand-star" aria-hidden="true">✦</span>
+          <span>Adventskalender</span>
         </a>
         <div class="header-meta">
           {% if debug_enabled %}
-            <span class="badge badge-debug">DEBUG MODE (ENABLE_DEBUG=True)</span>
+            <span class="badge badge-debug">DEBUG-MODUS (ENABLE_DEBUG=True)</span>
           {% endif %}
           {% if session.get("authenticated") %}
-            <span class="user-pill">Signed in as {{ session.get("username", "user") }}</span>
-            <form action="{{ url_for('auth.logout') }}" method="post" class="inline-form">
-              <button type="submit" class="btn btn-secondary btn-sm">Log out</button>
+            <span class="user-pill">
+              Angemeldet als <strong>{{ session.get("username", "Benutzer") }}</strong>
+            </span>
+            <form
+              id="logout-form"
+              action="{{ url_for('auth.logout') }}"
+              method="post"
+              class="inline-form"
+            >
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+              <button type="submit" class="btn btn-secondary btn-sm">Abmelden</button>
             </form>
           {% endif %}
         </div>
       </div>
     </header>
 
-    <main class="container main-content">
+    <main id="main" class="container main-content">
+      {% if session.get("authenticated") %}
+        <div id="session-warning" class="session-warning" role="status" hidden>
+          <span>
+            Ihre Sitzung läuft in
+            <strong id="session-remaining">2 Minuten</strong> ab.
+          </span>
+          <button type="button" id="session-stay" class="btn btn-secondary btn-sm">
+            Sitzung verlängern
+          </button>
+        </div>
+      {% endif %}
+
       {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           <section class="flash-list" aria-live="polite">
@@ -39,5 +78,18 @@
 
       {% block content %}{% endblock %}
     </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>24 Türchen, ein bisschen Magie — frohe Adventszeit.</p>
+      </div>
+    </footer>
+
+    {% if session.get("authenticated") %}
+      <script
+        src="{{ url_for('static', filename='session.js', v=asset_version) }}"
+        defer
+      ></script>
+    {% endif %}
   </body>
 </html>
