@@ -1,17 +1,18 @@
 {% extends "base.html" %}
 
-{% block title %}Advent Calendar {{ calendar_year }}{% endblock %}
+{% block title %}Adventskalender {{ calendar_year }}{% endblock %}
 
 {% block content %}
   <section class="hero">
-    <h1>Advent Calendar {{ calendar_year }}</h1>
+    <p class="hero-eyebrow">24 Türchen · Dezember {{ calendar_year }}</p>
+    <h1>Adventskalender {{ calendar_year }}</h1>
     <p class="subtitle">
-      Current date: <strong>{{ today.strftime("%B %-d, %Y") }}</strong>.
-      Each door unlocks on its December date and remains open afterwards.
+      Heute ist <strong>{{ today_label }}</strong>. Jede Tür öffnet sich an ihrem
+      Dezembertag und bleibt danach geöffnet.
     </p>
   </section>
 
-  <section class="doors-grid" aria-label="Advent Calendar Doors">
+  <section class="doors-grid" aria-label="Türchen des Adventskalenders">
     {% for item in door_items %}
       {% set door = item.door %}
       {% if item.is_open %}
@@ -22,8 +23,9 @@
           data-suid="{{ door.suid }}"
         >
           <span class="door-number">{{ door.day }}</span>
-          <span class="door-status">Open ✦</span>
+          <span class="door-status">Offen</span>
           <span class="door-title">{{ door.title }}</span>
+          <span class="door-cta">Türchen öffnen <span aria-hidden="true">→</span></span>
         </a>
       {% else %}
         <div
@@ -32,8 +34,11 @@
           aria-disabled="true"
         >
           <span class="door-number">{{ door.day }}</span>
-          <span class="door-status">Locked 🔒</span>
-          <span class="door-unlock-hint">Opens Dec {{ door.day }}</span>
+          <span class="door-status">
+            <span class="lock-icon" aria-hidden="true"></span>
+            Verschlossen
+          </span>
+          <span class="door-unlock-hint">Öffnet am {{ item.unlock_label }}</span>
         </div>
       {% endif %}
     {% endfor %}

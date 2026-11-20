@@ -1,17 +1,21 @@
 {% extends "base.html" %}
 
-{% block title %}Sign In — Advent Calendar{% endblock %}
+{% block title %}Anmelden — Adventskalender{% endblock %}
 
 {% block content %}
   <section class="auth-card">
-    <h1>Sign In</h1>
-    <p class="subtitle">Enter your credentials to open the Advent Calendar.</p>
+    <p class="hero-eyebrow">Geschützter Bereich</p>
+    <h1>Anmelden</h1>
+    <p class="subtitle">
+      Bitte melden Sie sich an, um den Adventskalender zu öffnen.
+    </p>
 
     <form method="post" action="{{ url_for('auth.login') }}" class="auth-form">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
       <input type="hidden" name="next" value="{{ next_url }}" />
 
       <div class="form-group">
-        <label for="username">Username</label>
+        <label for="username">Benutzername</label>
         <input
           id="username"
           name="username"
@@ -23,7 +27,7 @@
       </div>
 
       <div class="form-group">
-        <label for="password">Password</label>
+        <label for="password">Passwort</label>
         <input
           id="password"
           name="password"
@@ -33,7 +37,9 @@
         />
       </div>
 
-      <button type="submit" class="btn btn-primary btn-block">Unlock Calendar</button>
+      <button type="submit" class="btn btn-primary btn-block">
+        Kalender öffnen
+      </button>
     </form>
   </section>
 {% endblock %}

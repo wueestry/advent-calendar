@@ -6,10 +6,21 @@ services:
     ports:
       - "${PORT:-5000}:5000"
     environment:
+      APP_ENV: "${APP_ENV:-development}"
       SECRET_KEY: "${SECRET_KEY:-change-me-in-production}"
       APP_USERNAME: "${APP_USERNAME:-admin}"
       APP_PASSWORD: "${APP_PASSWORD:-advent2026}"
+      APP_PASSWORD_HASH: "${APP_PASSWORD_HASH:-}"
       ENABLE_DEBUG: "${ENABLE_DEBUG:-False}"
       CALENDAR_YEAR: "${CALENDAR_YEAR:-2026}"
       TIMEZONE: "${TIMEZONE:-Europe/Zurich}"
+      COOKIE_SECURE: "${COOKIE_SECURE:-False}"
+      SESSION_LIFETIME_HOURS: "${SESSION_LIFETIME_HOURS:-12}"
+      SESSION_IDLE_TIMEOUT_MINUTES: "${SESSION_IDLE_TIMEOUT_MINUTES:-30}"
+      LOGIN_MAX_ATTEMPTS: "${LOGIN_MAX_ATTEMPTS:-5}"
+      LOGIN_LOCKOUT_SECONDS: "${LOGIN_LOCKOUT_SECONDS:-900}"
+      ALLOWED_ORIGINS: "${ALLOWED_ORIGINS:-}"
+      CSP_REPORT_ONLY: "${CSP_REPORT_ONLY:-False}"
+      TRUST_PROXY_HEADERS: "${TRUST_PROXY_HEADERS:-False}"
+      TRUSTED_HOSTS: "${TRUSTED_HOSTS:-}"
     restart: unless-stopped

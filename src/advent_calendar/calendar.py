@@ -20,6 +20,7 @@ from flask import (
 from advent_calendar.auth import login_required
 from advent_calendar.config import DEFAULT_MEDIA_DIR, parse_bool
 from advent_calendar.doors import DOORS, get_door_by_suid
+from advent_calendar.i18n import format_date_de, format_day_month_de
 
 calendar_bp = Blueprint("calendar", __name__)
 
@@ -51,7 +52,11 @@ def is_debug_enabled() -> bool:
 
 
 def unlock_date_for_day(day: int, year: int | None = None) -> date:
-    target_year = int(year if year is not None else current_app.config.get("CALENDAR_YEAR", date.today().year))
+    target_year = int(
+        year
+        if year is not None
+        else current_app.config.get("CALENDAR_YEAR", date.today().year)
+    )
     return date(target_year, 12, day)
 
 
@@ -74,6 +79,14 @@ def is_door_openable(
     return current_day >= unlock_date
 
 
+def _locked_door_message(day: int, year: int) -> str:
+    unlock_date = unlock_date_for_day(day, year=year)
+    return (
+        f"Tür Nr. {day} ist noch verschlossen! "
+        f"Sie öffnet sich am {format_date_de(unlock_date)}."
+    )
+
+
 @calendar_bp.route("/")
 @login_required
 def index() -> Any:
@@ -81,24 +94,27 @@ def index() -> Any:
     debug_active = is_debug_enabled()
     year = int(current_app.config.get("CALENDAR_YEAR", today.year))
 
-    door_items = [
-        {
-            "door": door,
-            "is_open": is_door_openable(
-                door.day,
-                today=today,
-                enable_debug=debug_active,
-                year=year,
-            ),
-            "unlock_date": unlock_date_for_day(door.day, year=year),
-        }
-        for door in DOORS
-    ]
+    door_items = []
+    for door in DOORS:
+        unlock_date = unlock_date_for_day(door.day, year=year)
+        door_items.append(
+            {
+                "door": door,
+                "is_open": is_door_openable(
+                    door.day,
+                    today=today,
+                    enable_debug=debug_active,
+                    year=year,
+                ),
+                "unlock_date": unlock_date,
+                "unlock_label": format_day_month_de(unlock_date),
+            }
+        )
 
     return render_template(
         "index.html",
         door_items=door_items,
-        today=today,
+        today_label=format_date_de(today),
         calendar_year=year,
         debug_enabled=debug_active,
     )
@@ -121,11 +137,7 @@ def door_detail(suid: str) -> Any:
         enable_debug=debug_active,
         year=year,
     ):
-        unlock_date = unlock_date_for_day(door.day, year=year)
-        flash(
-            f"Door #{door.day} is still locked! It opens on {unlock_date.strftime('%B %-d, %Y')}.",
-            "warning",
-        )
+        flash(_locked_door_message(door.day, year), "warning")
         return redirect(url_for("calendar.index"))
 
     return render_template(
@@ -133,7 +145,6 @@ def door_detail(suid: str) -> Any:
         door=door,
         image_url=resolve_door_media_url(door.suid, door.image),
         video_url=resolve_door_media_url(door.suid, door.video),
-        today=today,
         calendar_year=year,
         debug_enabled=debug_active,
     )
@@ -164,11 +175,7 @@ def door_media(suid: str, filename: str) -> Any:
         enable_debug=debug_active,
         year=year,
     ):
-        unlock_date = unlock_date_for_day(door.day, year=year)
-        flash(
-            f"Door #{door.day} is still locked! It opens on {unlock_date.strftime('%B %-d, %Y')}.",
-            "warning",
-        )
+        flash(_locked_door_message(door.day, year), "warning")
         return redirect(url_for("calendar.index"))
 
     allowed_files = {
