@@ -15,6 +15,7 @@ The interface is in Swiss German (`de-CH`), including localized dates such as `4
 - **Pictures & Videos in Doors**: Each `Door` in `src/advent_calendar/doors.py` supports optional `image`, `image_alt`, `video` (local files in `src/advent_calendar/media/` or external URLs), and `youtube_embed` fields. Local media files are served through `/door/<suid>/media/<filename>` behind the same login and date-unlock checks as the door itself.
 - **Line Breaks in Door Content**: Use `\n` in a door's `content` string to add line breaks. The text is escaped first, so HTML in content stays plain text.
 - **Fast, Lightweight UI**: A single small stylesheet, no JavaScript framework, immutable caching for versioned static assets, and animations limited to compositor-friendly properties.
+- **Nerd Font Icons**: The bundled Symbols Nerd Font renders Nerd Font glyphs in door content, so private-use icon characters can be used directly in `doors.py` strings.
 
 
 ## Quickstart (`uv`)
@@ -71,6 +72,10 @@ Copy `.env.example` to `.env` or set environment variables directly:
 | `ALLOWED_ORIGINS` | Comma-separated CORS allowlist. Empty disables CORS headers. | empty |
 | `TRUST_PROXY_HEADERS` | Trust `X-Forwarded-*` headers from one reverse proxy | `False` |
 | `TRUSTED_HOSTS` | Optional comma-separated host allowlist | empty |
+
+## Fonts
+
+The UI bundles [Nerd Fonts Symbols Only](https://github.com/ryanoasis/nerd-fonts) `v3.5.1` as `src/advent_calendar/static/fonts/SymbolsNerdFont-Regular.woff2` (MIT licensed; see the [font license](src/advent_calendar/static/fonts/LICENSE)). It is used as a fallback for Nerd Font glyphs in door content. Thanks to `unicode-range`, browsers download the font only when a page contains one of its glyphs.
 
 ## Security
 
