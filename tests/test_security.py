@@ -28,6 +28,18 @@ def test_login_lockout_expires(monkeypatch) -> None:
     assert limiter.retry_after("client") == 0
 
 
+def test_session_registry_rejects_revoked_and_expired_nonces() -> None:
+    registry = security.SessionRegistry(lifetime_seconds=60)
+
+    registry.register("revoked", now=1000.0)
+    registry.revoke("revoked")
+    assert not registry.is_active("revoked", now=1000.0)
+
+    registry.register("live", now=1000.0)
+    assert registry.is_active("live", now=1059.0)
+    assert not registry.is_active("live", now=1060.0)
+
+
 def _create_app(**overrides) -> Flask:
     config = {
         "TESTING": True,

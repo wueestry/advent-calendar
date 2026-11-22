@@ -20,7 +20,11 @@ from flask import (
 )
 from werkzeug.security import check_password_hash
 
-from advent_calendar.security import get_login_limiter
+from advent_calendar.security import (
+    get_login_limiter,
+    register_session,
+    revoke_session,
+)
 
 auth_bp = Blueprint("auth", __name__)
 
@@ -96,6 +100,7 @@ def login() -> Any:
 
         if _verify_credentials(username, password):
             limiter.reset(client_key)
+            revoke_session()
             session.clear()
             session.permanent = True
             session["authenticated"] = True
@@ -103,6 +108,7 @@ def login() -> Any:
             session["created_at"] = time.time()
             session["last_seen"] = time.time()
             session["_csrf_token"] = secrets.token_urlsafe(32)
+            register_session()
             if _is_safe_next_url(next_url):
                 return redirect(next_url)
             return redirect(url_for("calendar.index"))
@@ -116,6 +122,7 @@ def login() -> Any:
 
 @auth_bp.route("/logout", methods=["POST"])
 def logout() -> Any:
+    revoke_session()
     session.clear()
     flash("Sie wurden abgemeldet.", "info")
     return redirect(url_for("auth.login"))
