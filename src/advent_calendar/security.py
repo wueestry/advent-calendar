@@ -22,6 +22,7 @@ from flask import (
 from advent_calendar.config import DEFAULT_PASSWORD, DEFAULT_SECRET_KEY, parse_bool
 
 SAFE_METHODS = frozenset({"GET", "HEAD", "OPTIONS", "TRACE"})
+SESSION_NONCE_KEY = "session_nonce"
 INSECURE_SECRET_KEYS = {
     "",
     DEFAULT_SECRET_KEY,
@@ -46,6 +47,50 @@ CSP_DEFAULT = (
     "worker-src 'none'",
     "require-trusted-types-for 'script'",
 )
+
+
+class SessionRegistry:
+    """Tracks live session nonces so logout can revoke signed cookies.
+
+    Flask sessions are client-side signed cookies. Clearing the cookie does not
+    stop a captured copy from being replayed while its signature and timestamps
+    are still valid. Registering a random nonce at login and removing it at
+    logout gives the server a way to reject such replays. State is process-local,
+    matching the app's single-worker deployment.
+    """
+
+    def __init__(self, lifetime_seconds: float) -> None:
+        self.lifetime_seconds = max(0.0, float(lifetime_seconds))
+        self._lock = threading.Lock()
+        self._expiries: dict[str, float] = {}
+
+    def register(self, nonce: str, now: float | None = None) -> None:
+        current = time.time() if now is None else now
+        with self._lock:
+            self._purge_expired_locked(current)
+            self._expiries[nonce] = (
+                current + self.lifetime_seconds if self.lifetime_seconds > 0 else 0.0
+            )
+
+    def is_active(self, nonce: str, now: float | None = None) -> bool:
+        current = time.time() if now is None else now
+        with self._lock:
+            expires_at = self._expiries.get(nonce)
+            if expires_at is None:
+                return False
+            if expires_at and expires_at <= current:
+                self._expiries.pop(nonce, None)
+                return False
+            return True
+
+    def revoke(self, nonce: str) -> None:
+        with self._lock:
+            self._expiries.pop(nonce, None)
+
+    def _purge_expired_locked(self, now: float) -> None:
+        for nonce, expires_at in list(self._expiries.items()):
+            if expires_at and expires_at <= now:
+                self._expiries.pop(nonce, None)
 
 
 class LoginRateLimiter:
@@ -152,6 +197,22 @@ def get_login_limiter() -> LoginRateLimiter:
     return current_app.extensions["login_rate_limiter"]
 
 
+def get_session_registry() -> SessionRegistry:
+    return current_app.extensions["session_registry"]
+
+
+def register_session() -> None:
+    nonce = secrets.token_urlsafe(32)
+    session[SESSION_NONCE_KEY] = nonce
+    get_session_registry().register(nonce)
+
+
+def revoke_session() -> None:
+    nonce = session.get(SESSION_NONCE_KEY)
+    if isinstance(nonce, str):
+        get_session_registry().revoke(nonce)
+
+
 def _allowed_origins(app: Flask) -> set[str]:
     raw = app.config.get("ALLOWED_ORIGINS", [])
     if isinstance(raw, str):
@@ -188,8 +249,11 @@ def _csrf_protect() -> Any:
 
 
 def _expire_session(message: str) -> Any:
+    revoke_session()
     session.clear()
     flash(message, "info")
+    if request.endpoint == "auth.login":
+        return None
     return redirect(url_for("auth.login"))
 
 
@@ -205,6 +269,12 @@ def _seconds(value: Any) -> float:
 def _enforce_session_timeout() -> Any:
     if request.endpoint == "static" or not session.get("authenticated"):
         return None
+
+    nonce = session.get(SESSION_NONCE_KEY)
+    if not isinstance(nonce, str) or not get_session_registry().is_active(nonce):
+        return _expire_session(
+            "Ihre Sitzung ist nicht mehr gültig. Bitte melden Sie sich erneut an."
+        )
 
     now = time.time()
 
@@ -325,6 +395,9 @@ def init_security(app: Flask) -> None:
     app.extensions["login_rate_limiter"] = LoginRateLimiter(
         int(app.config.get("LOGIN_MAX_ATTEMPTS", 5)),
         int(app.config.get("LOGIN_LOCKOUT_SECONDS", 900)),
+    )
+    app.extensions["session_registry"] = SessionRegistry(
+        _seconds(app.config.get("PERMANENT_SESSION_LIFETIME", 0))
     )
     app.extensions["allowed_origins"] = _allowed_origins(app)
 

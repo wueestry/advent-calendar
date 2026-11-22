@@ -47,6 +47,44 @@ def test_login_with_valid_credentials_and_logout(client: FlaskClient) -> None:
     assert after_logout.status_code == 302
 
 
+def test_logout_revokes_previously_issued_session_cookie(
+    client: FlaskClient,
+) -> None:
+    login_resp = login(client)
+    old_cookie = client.get_cookie("advent_calendar_session")
+    assert old_cookie is not None
+    old_value = old_cookie.value
+
+    token = extract_csrf(login_resp)
+    client.post("/logout", data={"csrf_token": token})
+
+    client.set_cookie("advent_calendar_session", old_value)
+    replay = client.get("/")
+    assert replay.status_code == 302
+    assert "/login" in replay.headers["Location"]
+
+
+def test_session_expiry_revokes_previously_issued_session_cookie(
+    app: Flask, auth_client: FlaskClient
+) -> None:
+    old_cookie = auth_client.get_cookie("advent_calendar_session")
+    assert old_cookie is not None
+    old_value = old_cookie.value
+
+    with auth_client.session_transaction() as session:
+        session["created_at"] = time.time() - (
+            app.config["PERMANENT_SESSION_LIFETIME"].total_seconds() + 60
+        )
+
+    expired = auth_client.get("/", follow_redirects=False)
+    assert expired.status_code == 302
+
+    auth_client.set_cookie("advent_calendar_session", old_value)
+    replay = auth_client.get("/")
+    assert replay.status_code == 302
+    assert "/login" in replay.headers["Location"]
+
+
 def test_login_requires_csrf_token(client: FlaskClient) -> None:
     response = client.post(
         "/login",

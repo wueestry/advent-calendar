@@ -76,6 +76,7 @@ Copy `.env.example` to `.env` or set environment variables directly:
 - All state-changing requests (`POST`) require a per-session CSRF token, including the login and logout forms.
 - Failed logins are throttled per client address. The limiter is in-memory, so each application process keeps its own counter.
 - Sessions are `HttpOnly` and `SameSite=Lax`, expire after an absolute lifetime, and are logged out automatically after the configured idle timeout. The UI warns before the idle timeout and offers to extend the session.
+- Logout revokes the session nonce in process memory, so a captured session cookie cannot be replayed after logout or timeout. Because the registry is process-local, restarting the app logs everyone out and the app must run as a single process (the shipped Gunicorn config uses one worker) for revocation to be consistent.
 - Responses send `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and `Cross-Origin-Resource-Policy`. HSTS is sent on every response; browsers only enforce it over HTTPS, so production must still be served over TLS (directly or via a trusted reverse proxy).
 - CORS is deny-by-default. Only origins in `ALLOWED_ORIGINS` receive CORS headers.
 - Static assets are versioned by modification time and cached immutably; HTML responses are never cached.
