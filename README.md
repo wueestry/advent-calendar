@@ -76,7 +76,7 @@ Copy `.env.example` to `.env` or set environment variables directly:
 - All state-changing requests (`POST`) require a per-session CSRF token, including the login and logout forms.
 - Failed logins are throttled per client address. The limiter is in-memory, so each application process keeps its own counter.
 - Sessions are `HttpOnly` and `SameSite=Lax`, expire after an absolute lifetime, and are logged out automatically after the configured idle timeout. The UI warns before the idle timeout and offers to extend the session.
-- Responses send `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and `Cross-Origin-Resource-Policy`. HSTS is sent on HTTPS requests.
+- Responses send `Content-Security-Policy`, `X-Content-Type-Options`, `X-Frame-Options`, `Referrer-Policy`, `Permissions-Policy`, `Cross-Origin-Opener-Policy`, and `Cross-Origin-Resource-Policy`. HSTS is sent on every response; browsers only enforce it over HTTPS, so production must still be served over TLS (directly or via a trusted reverse proxy).
 - CORS is deny-by-default. Only origins in `ALLOWED_ORIGINS` receive CORS headers.
 - Static assets are versioned by modification time and cached immutably; HTML responses are never cached.
 - In production (`APP_ENV=production`), the app refuses to start with the default secret key or default password. The Docker image runs Gunicorn as a non-root user.

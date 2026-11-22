@@ -296,10 +296,9 @@ def _security_headers(response: Any) -> Any:
     response.headers.setdefault("X-XSS-Protection", "0")
     response.headers.setdefault("X-Robots-Tag", "noindex, nofollow")
 
-    if request.is_secure:
-        response.headers.setdefault(
-            "Strict-Transport-Security", "max-age=63072000; includeSubDomains"
-        )
+    response.headers.setdefault(
+        "Strict-Transport-Security", "max-age=63072000; includeSubDomains"
+    )
 
     origin = request.headers.get("Origin", "")
     if origin and origin in current_app.extensions["allowed_origins"]:

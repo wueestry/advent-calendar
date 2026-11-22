@@ -59,6 +59,13 @@ def test_security_headers_are_present(client: FlaskClient) -> None:
     assert "camera=()" in response.headers["Permissions-Policy"]
 
 
+def test_hsts_header_is_present_on_http_responses(client: FlaskClient) -> None:
+    response = client.get("/login")
+    assert response.headers["Strict-Transport-Security"] == (
+        "max-age=63072000; includeSubDomains"
+    )
+
+
 def test_html_responses_are_not_cached(client: FlaskClient) -> None:
     response = client.get("/login")
     assert response.headers["Cache-Control"] == "no-store, max-age=0"
