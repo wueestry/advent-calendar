@@ -17,6 +17,26 @@
   --radius: 1rem;
 }
 
+/*
+ * Nerd Font glyphs (Unicode private-use characters) are not present in the
+ * system UI fonts. Use a locally installed Symbols Nerd Font when available,
+ * otherwise load the bundled font. unicode-range means the font file is only
+ * downloaded when a page actually uses one of these glyphs.
+ */
+@font-face {
+  font-family: "Nerd Font Symbols";
+  src:
+    local("Symbols Nerd Font"),
+    local("Symbols Nerd Font Mono"),
+    url("fonts/SymbolsNerdFont-Regular.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  unicode-range:
+    U+23FB-23FE, U+2630, U+2665, U+26A1, U+276C-2771, U+2B58,
+    U+E000-F8FF, U+F0000-FFFFD, U+100000-10FFFD;
+}
+
 * {
   box-sizing: border-box;
 }
@@ -31,6 +51,7 @@ body {
   display: flex;
   flex-direction: column;
   font-family:
+    "Nerd Font Symbols",
     system-ui,
     -apple-system,
     BlinkMacSystemFont,
