@@ -13,6 +13,7 @@ The interface is in Swiss German (`de-CH`), including localized dates such as `4
 - **Locked Door Redirect**: Visiting a locked door's `/door/<suid>` URL directly redirects back to `/` with a flash message showing when the door unlocks.
 - **Debug Override (`ENABLE_DEBUG=True`)**: Setting `ENABLE_DEBUG=True` unlocks all 24 doors regardless of the current date.
 - **Pictures & Videos in Doors**: Each `Door` in `src/advent_calendar/doors.py` supports optional `image`, `image_alt`, `video` (local files in `src/advent_calendar/media/` or external URLs), and `youtube_embed` fields. Local media files are served through `/door/<suid>/media/<filename>` behind the same login and date-unlock checks as the door itself.
+- **Line Breaks in Door Content**: Use `\n` in a door's `content` string to add line breaks. The text is escaped first, so HTML in content stays plain text.
 - **Fast, Lightweight UI**: A single small stylesheet, no JavaScript framework, immutable caching for versioned static assets, and animations limited to compositor-friendly properties.
 
 

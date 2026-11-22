@@ -22,7 +22,7 @@
         </figure>
       {% endif %}
 
-      <p>{{ door.content }}</p>
+      <p class="door-content">{{ door.content | format_content }}</p>
 
       {% if video_url %}
         <div class="door-media door-media-video">
