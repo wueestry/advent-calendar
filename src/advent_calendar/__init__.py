@@ -10,6 +10,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from advent_calendar.auth import auth_bp
 from advent_calendar.calendar import calendar_bp
 from advent_calendar.config import load_config, parse_bool
+from advent_calendar.formatting import format_content
 from advent_calendar.i18n import format_date_de, format_day_month_de
 from advent_calendar.security import init_security, validate_config
 
@@ -85,6 +86,7 @@ def create_app(test_config: dict[str, Any] | None = None) -> Flask:
 
     app.jinja_env.filters["date_de"] = format_date_de
     app.jinja_env.filters["day_month_de"] = format_day_month_de
+    app.jinja_env.filters["format_content"] = format_content
     app.jinja_env.globals["asset_version"] = _asset_version(app)
 
     _register_error_handlers(app)
